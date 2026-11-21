@@ -55,6 +55,29 @@
   .filtro.ativo{background:var(--accent);border-color:var(--accent);color:#fff}
   .filtro .qtd{opacity:.7;font-weight:400;margin-left:4px}
 
+  /* Abas */
+  .abas{display:flex;justify-content:center;gap:6px;margin:0 auto 18px;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:5px;width:max-content;box-shadow:var(--shadow)}
+  .aba{border:0;background:transparent;font:inherit;font-weight:700;font-size:.95rem;color:var(--muted);
+    padding:10px 22px;border-radius:999px;cursor:pointer;transition:.2s}
+  .aba:hover{color:var(--accent)}
+  .aba.ativa{background:var(--ink);color:#fff}
+
+  /* Cards de vídeo */
+  .grade.videos{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .thumb{aspect-ratio:16/9;position:relative;overflow:hidden;background:#e9dfd3}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+  .card:hover .thumb img{transform:scale(1.04)}
+  .thumb .play{
+    position:absolute;inset:0;margin:auto;width:58px;height:58px;border-radius:50%;
+    background:rgba(181,88,58,.92);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);transition:transform .2s;
+  }
+  .card:hover .thumb .play{transform:scale(1.1)}
+  .thumb .play::after{content:"";border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
+  .thumb .dur{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.78);color:#fff;font-size:.75rem;font-weight:700;padding:3px 7px;border-radius:6px}
+  .info .canal{font-size:.8rem;color:var(--accent);font-weight:600}
+
   /* Grade */
   main{max-width:1200px;margin:0 auto;padding:28px 20px 70px}
   .resumo{color:var(--muted);font-size:.92rem;margin-bottom:18px}
@@ -125,6 +148,8 @@
 
   @media (max-width:640px){
     .grade{grid-template-columns:repeat(2,1fr);gap:14px}
+    .grade.videos{grid-template-columns:1fr}
+    .aba{padding:9px 16px;font-size:.9rem}
     .capa .titulo-capa{font-size:1.1rem}
   }
 </style>
@@ -134,10 +159,14 @@
 <header>
   <span class="selo">Moldes & Apostilas</span>
   <h1>Bolsas & Nécessaires</h1>
-  <p>Todos os moldes em um só lugar. Escolha a apostila, abra e comece a costurar.</p>
+  <p>Todos os moldes e aulas em um só lugar. Escolha, abra e comece a costurar.</p>
 </header>
 
 <div class="controles">
+  <div class="abas" role="tablist">
+    <button class="aba ativa" data-aba="apostilas" role="tab">📚 Apostilas</button>
+    <button class="aba" data-aba="videos" role="tab">🎬 Videoaulas</button>
+  </div>
   <label class="busca">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="busca" type="search" placeholder="Buscar molde… ex: tote, mochila, carteiro">
@@ -148,7 +177,7 @@
 <main>
   <p class="resumo" id="resumo"></p>
   <div class="grade" id="grade"></div>
-  <div class="vazio" id="vazio">Nenhuma apostila encontrada. Tente outra palavra.</div>
+  <div class="vazio" id="vazio">Nada encontrado. Tente outra palavra.</div>
 </main>
 
 <footer>Feito com carinho ✂️ · Material de uso pessoal</footer>
@@ -161,8 +190,8 @@
   </div>
   <div class="leitor-area">
     <div class="carregando" id="carregando">Carregando apostila…</div>
-    <div class="reserva">Não apareceu? <a id="lReserva" target="_blank" rel="noopener">Abrir em nova aba</a></div>
-    <iframe id="lFrame" title="Apostila" allow="autoplay" allowfullscreen></iframe>
+    <div class="reserva"><span id="lReservaTxt">Não apareceu?</span> <a id="lReserva" target="_blank" rel="noopener">Abrir em nova aba</a></div>
+    <iframe id="lFrame" title="Conteúdo" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
   </div>
 </div>
 
@@ -236,6 +265,42 @@ const APOSTILAS = [
   { titulo:"Mochila Patchwork", categoria:"Mochilas", tipo:"PNG", driveId:"1EUYVHXMsMdnMH6-xFIZdjmez4A7_-lq2" }
 ];
 
+/* =========================================================
+   VIDEOAULAS — vídeos públicos do YouTube (créditos ao canal de cada autora/autor)
+   id:     código do vídeo (o trecho depois de watch?v= no link)
+   modulo: precisa ser uma das chaves de MODULOS abaixo
+   ========================================================= */
+const MODULOS = ["Primeiros passos", "Bolsas", "Nécessaires", "Bolsas jeans", "Mochilas"];
+
+const VIDEOS = [
+  { id:"SL9DiM8PMvA", modulo:"Primeiros passos", titulo:"Corte e costura para iniciantes – Aula 01", canal:"Viviane Alves – Minha Moda Digital", duracao:"20:00" },
+  { id:"rnpugSH2hy0", modulo:"Primeiros passos", titulo:"Como começar a costurar do zero (5 passos simples)", canal:"A Costura do Dia", duracao:"8:31" },
+  { id:"Je62PV1COM0", modulo:"Primeiros passos", titulo:"Passar a linha, encher a canelinha e regular os pontos", canal:"Jhonata Pereira", duracao:"17:21" },
+  { id:"_Zdd3kwDOBM", modulo:"Primeiros passos", titulo:"Primeiros exercícios de costura para iniciantes", canal:"Jonatas Verly", duracao:"18:03" },
+  { id:"0T_nPj4pF-M", modulo:"Primeiros passos", titulo:"Acabamento sem overloque: costura francesa e inglesa", canal:"Eu Amo Costurar", duracao:"6:50" },
+  { id:"6kZMl7A7XWQ", modulo:"Primeiros passos", titulo:"Costura à mão para iniciantes", canal:"Costura do Dia com a Tina", duracao:"8:39" },
+
+  { id:"kcZMSo4TAWw", modulo:"Bolsas", titulo:"Bolsa muito fácil de costurar – passo a passo", canal:"Vivi Ateliê", duracao:"18:23" },
+  { id:"Cr7i7ATU8Es", modulo:"Bolsas", titulo:"Bolsa que faz em minutos – passo a passo", canal:"Izoire Roecker", duracao:"15:31" },
+  { id:"gKdOcWyYJZQ", modulo:"Bolsas", titulo:"Bolsa clutch em tecido com alças de metal", canal:"Renata Carraro", duracao:"10:31" },
+  { id:"XW_tYU1GohE", modulo:"Bolsas", titulo:"Ecobag super fácil para iniciantes", canal:"Izoire Roecker", duracao:"11:43" },
+  { id:"ard6YaJqgQY", modulo:"Bolsas", titulo:"Bolsinha fácil com apenas duas costuras", canal:"Costura Lena", duracao:"10:00" },
+
+  { id:"brwqKtIwNBM", modulo:"Nécessaires", titulo:"A nécessaire mais fácil do mundo", canal:"Carol Vilalta", duracao:"16:49" },
+  { id:"vp3d_yzUR_M", modulo:"Nécessaires", titulo:"Nécessaire forrada com zíper – para iniciantes", canal:"Do Fundo do Armário", duracao:"7:53" },
+  { id:"lf8DsZChu7A", modulo:"Nécessaires", titulo:"Nécessaire fofa com zíper (bolsa de maquiagem)", canal:"Doce Outono Handmade", duracao:"17:45" },
+  { id:"Ifka_glm-vQ", modulo:"Nécessaires", titulo:"Nécessaire box grande", canal:"Atelier LoveYu", duracao:"18:46" },
+
+  { id:"OJPPgup8XCU", modulo:"Bolsas jeans", titulo:"Bolsa forrada com calça jeans velha", canal:"DIY com Flaviani Custodio", duracao:"12:56" },
+  { id:"eEBbEBn-hOU", modulo:"Bolsas jeans", titulo:"Bolsa transversal com jeans velho", canal:"Silvia Costura Criativa", duracao:"8:13" },
+  { id:"I5hltAH4KDQ", modulo:"Bolsas jeans", titulo:"Bolsa com retalhos de jeans", canal:"Izoire Roecker", duracao:"15:40" },
+
+  { id:"q-btpadB3gQ", modulo:"Mochilas", titulo:"Mochila saco com forro – aula para iniciantes", canal:"Luciana Guterres", duracao:"9:12" },
+  { id:"wbgZ9a5m4AM", modulo:"Mochilas", titulo:"Mochila esportiva fácil com medidas", canal:"Eli Dicas de Costura", duracao:"7:37" },
+  { id:"omjHbBZjHek", modulo:"Mochilas", titulo:"Mochila com calça jeans – passo a passo", canal:"Vanessa Melo", duracao:"47:27" },
+  { id:"6JjDARI0Fck", modulo:"Mochilas", titulo:"Mochila que vira bolsa", canal:"Dani Delinski", duracao:"40:30" }
+];
+
 /* Links montados a partir do ID do arquivo no Google Drive */
 APOSTILAS.forEach(a=>{
   if(a.driveId){
@@ -247,6 +312,7 @@ APOSTILAS.forEach(a=>{
 /* ================= Lógica da vitrine ================= */
 const $ = s => document.querySelector(s);
 let filtroAtual = "Todas";
+let aba = "apostilas";
 let termo = "";
 
 const normalizar = t => t.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
@@ -429,19 +495,23 @@ function montarCapa(el, item){
 }
 
 function renderFiltros(){
-  const nomes = ["Todas", ...Object.keys(CATEGORIAS)];
+  const base  = aba==="videos" ? VIDEOS : APOSTILAS;
+  const chave = aba==="videos" ? "modulo" : "categoria";
+  const nomes = ["Todas", ...(aba==="videos" ? MODULOS : Object.keys(CATEGORIAS))];
   $("#filtros").innerHTML = nomes.map(n=>{
-    const qtd = n==="Todas" ? APOSTILAS.length : APOSTILAS.filter(a=>a.categoria===n).length;
+    const qtd = n==="Todas" ? base.length : base.filter(a=>a[chave]===n).length;
     return `<button class="filtro ${n===filtroAtual?"ativo":""}" data-cat="${n}">${n}<span class="qtd">${qtd}</span></button>`;
   }).join("");
 }
 
 function renderGrade(){
+  if(aba==="videos") return renderVideos();
   const lista = APOSTILAS.filter(a =>
     (filtroAtual==="Todas" || a.categoria===filtroAtual) &&
     normalizar(a.titulo + " " + a.categoria).includes(normalizar(termo))
   );
   const grade = $("#grade");
+  grade.className = "grade";
   grade.innerHTML = "";
   lista.forEach(item=>{
     const card = document.createElement("article");
@@ -455,16 +525,68 @@ function renderGrade(){
   $("#resumo").textContent = `${lista.length} ${lista.length===1?"apostila":"apostilas"}`;
 }
 
+function renderVideos(){
+  const lista = VIDEOS.filter(v =>
+    (filtroAtual==="Todas" || v.modulo===filtroAtual) &&
+    normalizar(v.titulo + " " + v.modulo + " " + v.canal).includes(normalizar(termo))
+  );
+  const grade = $("#grade");
+  grade.className = "grade videos";
+  grade.innerHTML = "";
+  lista.forEach(v=>{
+    const card = document.createElement("article");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="thumb">
+        <img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <span class="play"></span>
+        ${v.duracao ? `<span class="dur">${v.duracao}</span>` : ""}
+      </div>
+      <div class="info"><span class="cat">${v.modulo}</span><h3>${v.titulo}</h3><span class="canal">${v.canal}</span></div>`;
+    card.addEventListener("click", ()=>abrirVideo(v));
+    grade.appendChild(card);
+  });
+  $("#vazio").style.display = lista.length ? "none" : "block";
+  $("#resumo").textContent = `${lista.length} ${lista.length===1?"videoaula":"videoaulas"}`;
+}
+
+function trocarAba(nova){
+  if(nova===aba) return;
+  aba = nova; filtroAtual = "Todas"; termo = ""; $("#busca").value = "";
+  document.querySelectorAll(".aba").forEach(b=>b.classList.toggle("ativa", b.dataset.aba===aba));
+  $("#busca").placeholder = aba==="videos" ? "Buscar aula… ex: zíper, mochila, iniciante" : "Buscar molde… ex: tote, mochila, carteiro";
+  renderFiltros(); renderGrade();
+}
+
+function abrirVideo(v){
+  $("#lCat").textContent = v.modulo + " · " + v.canal;
+  $("#lTitulo").textContent = v.titulo;
+  $("#lBaixar").style.display = "none";
+  $("#lReservaTxt").textContent = "Não carregou?";
+  $("#lReserva").textContent = "Assistir no YouTube";
+  $("#lReserva").href = `https://www.youtube.com/watch?v=${v.id}`;
+  $("#carregando").textContent = "Carregando aula…";
+  mostrarLeitor(`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`);
+}
+
+function mostrarLeitor(src){
+  $("#carregando").style.display = "flex";
+  $("#lFrame").src = src;
+  $("#leitor").classList.add("aberto");
+  document.body.style.overflow = "hidden";
+  history.pushState({leitor:true}, "");
+}
+
 function abrirLeitor(item){
   $("#lCat").textContent = item.categoria;
   $("#lTitulo").textContent = item.titulo;
   $("#lBaixar").href = item.download || item.link;
+  $("#lBaixar").style.display = "";
+  $("#lReservaTxt").textContent = "Não apareceu?";
+  $("#lReserva").textContent = "Abrir em nova aba";
   $("#lReserva").href = item.link;
-  $("#carregando").style.display = "flex";
-  $("#lFrame").src = item.driveId ? `https://drive.google.com/file/d/${item.driveId}/preview` : item.link;
-  $("#leitor").classList.add("aberto");
-  document.body.style.overflow = "hidden";
-  history.pushState({leitor:true}, "");
+  $("#carregando").textContent = "Carregando apostila…";
+  mostrarLeitor(item.driveId ? `https://drive.google.com/file/d/${item.driveId}/preview` : item.link);
 }
 function fecharLeitor(viaHistorico){
   if(!$("#leitor").classList.contains("aberto")) return;
@@ -480,6 +602,9 @@ $("#filtros").addEventListener("click", e=>{
   if(!b) return;
   filtroAtual = b.dataset.cat;
   renderFiltros(); renderGrade();
+});
+document.querySelector(".abas").addEventListener("click", e=>{
+  const b = e.target.closest(".aba"); if(b) trocarAba(b.dataset.aba);
 });
 $("#busca").addEventListener("input", e=>{ termo = e.target.value; renderGrade(); });
 $("#voltar").addEventListener("click", ()=>fecharLeitor(false));
