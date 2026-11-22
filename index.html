@@ -144,6 +144,26 @@
     .leitor-barra .titulo strong{font-size:1rem}
   }
 
+  /* Pop-up de pagamento */
+  .aviso-fundo{position:fixed;inset:0;background:rgba(40,28,20,.6);display:none;align-items:center;justify-content:center;
+    padding:20px;z-index:100;backdrop-filter:blur(3px)}
+  .aviso-fundo.aberto{display:flex}
+  .aviso{background:#fff;border-radius:22px;max-width:400px;width:100%;padding:34px 26px 26px;text-align:center;position:relative;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);animation:surgir .3s ease}
+  @keyframes surgir{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  .aviso .fechar-x{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;border:0;background:#f4ece3;
+    color:var(--ink);font-size:1.3rem;line-height:1;cursor:pointer}
+  .aviso .fechar-x:hover{background:#ecdfd1}
+  .aviso .icone{width:62px;height:62px;border-radius:50%;background:#fbe9e2;color:var(--accent);margin:0 auto 14px;
+    display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+  .aviso h2{font-family:"Fraunces",serif;font-size:1.45rem;line-height:1.2;margin-bottom:8px}
+  .aviso p{color:var(--muted);margin-bottom:18px}
+  .aviso .chave{background:#faf6f0;border:1.5px dashed var(--line);border-radius:12px;padding:12px;font-weight:700;
+    font-size:1.15rem;letter-spacing:.04em;margin-bottom:14px}
+  .aviso .chave small{display:block;font-size:.72rem;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+  .btn-pix{width:100%;justify-content:center;font-size:1.05rem;padding:15px 20px;border-radius:14px}
+  .btn-pix.copiado{background:#3f8a5a}
+
   footer{text-align:center;color:var(--muted);font-size:.85rem;padding:30px 20px;border-top:1px solid var(--line)}
 
   @media (max-width:640px){
@@ -181,6 +201,17 @@
 </main>
 
 <footer>Feito com carinho ✂️ · Material de uso pessoal</footer>
+
+<div class="aviso-fundo" id="aviso" role="dialog" aria-modal="true" aria-labelledby="avisoTitulo">
+  <div class="aviso">
+    <button class="fechar-x" id="avisoFechar" aria-label="Fechar">×</button>
+    <div class="icone">🔒</div>
+    <h2 id="avisoTitulo">Seu acesso será bloqueado em breve</h2>
+    <p>Efetue o pagamento</p>
+    <div class="chave"><small>Chave Pix</small><span id="chavePix">81995494413</span></div>
+    <button class="btn btn-principal btn-pix" id="copiarPix">📋 Copiar chave Pix</button>
+  </div>
+</div>
 
 <div class="leitor" id="leitor" role="dialog" aria-modal="true">
   <div class="leitor-barra">
@@ -608,11 +639,45 @@ document.querySelector(".abas").addEventListener("click", e=>{
 });
 $("#busca").addEventListener("input", e=>{ termo = e.target.value; renderGrade(); });
 $("#voltar").addEventListener("click", ()=>fecharLeitor(false));
-document.addEventListener("keydown", e=>{ if(e.key==="Escape") fecharLeitor(false); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ fecharAviso(); fecharLeitor(false); } });
 window.addEventListener("popstate", ()=>fecharLeitor(true)); // botão voltar do celular fecha o leitor
+
+/* ===== Pop-up de pagamento ===== */
+const CHAVE_PIX = "81995494413";
+
+function copiarTexto(txt){
+  if(navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(txt).catch(()=>copiaReserva(txt));
+  }
+  return Promise.resolve(copiaReserva(txt));
+}
+function copiaReserva(txt){
+  const t = document.createElement("textarea");
+  t.value = txt; t.setAttribute("readonly",""); t.style.position="fixed"; t.style.opacity="0";
+  document.body.appendChild(t); t.select(); t.setSelectionRange(0, txt.length);
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(t);
+}
+
+$("#copiarPix").addEventListener("click", ()=>{
+  copiarTexto(CHAVE_PIX).then(()=>{
+    const b = $("#copiarPix");
+    b.textContent = "✅ Chave copiada!";
+    b.classList.add("copiado");
+    setTimeout(()=>{ b.textContent = "📋 Copiar chave Pix"; b.classList.remove("copiado"); }, 2500);
+  });
+});
+function fecharAviso(){ $("#aviso").classList.remove("aberto"); document.body.style.overflow = ""; }
+$("#avisoFechar").addEventListener("click", fecharAviso);
+$("#aviso").addEventListener("click", e=>{ if(e.target.id==="aviso") fecharAviso(); });
 
 renderFiltros();
 renderGrade();
+
+// abre o aviso assim que a pessoa entra no app
+$("#chavePix").textContent = CHAVE_PIX;
+$("#aviso").classList.add("aberto");
+document.body.style.overflow = "hidden";
 </script>
 </body>
 </html>
